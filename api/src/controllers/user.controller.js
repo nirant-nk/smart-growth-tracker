@@ -11,7 +11,7 @@ export const registerUser = async (req, res, next) => {
       return res.status(400).json({ message: "Phone already registered" });
 
     const passwordHash = await bcrypt.hash(password, 10);
-    const user = new User({ name, phone, passwordHash, role, village });
+    const user = new User({ name, phone, passwordHash, role, village }); //"asha", "anm", "parent"
     await user.save();
     res.status(201).json({ message: "User registered" });
   } catch (err) {
