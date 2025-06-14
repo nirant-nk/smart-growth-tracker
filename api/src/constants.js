@@ -7,7 +7,8 @@ export const ROLES = {
   ANM: 'anm',
   PARENT: 'parent',
 };
+
 export const Z_SCORE_THRESHOLDS = {
-  NORMAL: -2,
-  MAM: -3,
+  SAM: -3,
+  MAM: -2,
 };
