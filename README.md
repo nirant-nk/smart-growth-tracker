@@ -68,19 +68,15 @@ ui/
 
 ### ⚙️ Setup & Run (Frontend)
 
-1. **Navigate to UI folder**
-   ```bash
-   cd ui
-   ```
-2. **Install dependencies**
+1. **Install dependencies**
    ```bash
    npm install
    ```
-3. **Configure environment**
+2. **Configure environment**
    ```env
    NEXT_PUBLIC_API_URL=http://localhost:6069/api
    ```
-4. **Start development server**
+3. **Start development server**
    ```bash
    npm run dev
    ```
@@ -102,23 +98,19 @@ api/
 └── utils/           # Z-score logic, validators, middleware
 ```
 
-### ⚙️ Setup & Run (Backend)
+### ⚙️ Setup & Run (Backend / Supabase Direct)
 
-1. **Navigate to API folder**
-   ```bash
-   cd api
-   ```
-2. **Install dependencies**
+1. **Install dependencies**
    ```bash
    npm install
    ```
-3. **Configure **``
+2. **Configure **``
    ```env
    PORT=6069
    SUPABASE_URI=<your_supabase_uri>
    JWT_SECRET=<your_jwt_secret>
    ```
-4. **Start in dev mode**
+3. **Start in dev mode**
    ```bash
    npm run dev
    ```
