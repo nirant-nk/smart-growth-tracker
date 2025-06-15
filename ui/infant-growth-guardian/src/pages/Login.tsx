@@ -8,7 +8,7 @@ import { apiClient } from '@/lib/api';
 import { useState } from 'react';
 
 interface LoginProps {
-  onLogin: (token: string, role: string) => void;
+  onLogin: (parentId:string,token: string, role: string) => void;
   onNavigate: (page: 'home' | 'register') => void;
 }
 
@@ -26,7 +26,8 @@ const Login = ({ onLogin, onNavigate }: LoginProps) => {
     try {
       const response = await apiClient.login(formData);
       apiClient.setToken(response.token);
-      onLogin(response.token, response.role);
+      apiClient.setParentId(response.parentId)
+      onLogin(response.parentId,response.token, response.role);
       toast({
         title: "Login successful",
         description: "Welcome to Infant Growth Guardian",

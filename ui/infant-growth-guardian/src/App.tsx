@@ -1,14 +1,14 @@
 
-import { useState, useEffect } from 'react';
-import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { apiClient } from '@/lib/api';
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useEffect, useState } from 'react';
+import Dashboard from "./pages/Dashboard";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import Dashboard from "./pages/Dashboard";
 
 const queryClient = new QueryClient();
 
@@ -29,7 +29,7 @@ const App = () => {
           // Set token in API client
           apiClient.setToken(token);
           setIsAuthenticated(true);
-          setCurrentPage('dashboard');
+          setCurrentPage('home');
           console.log('User authenticated from stored token');
         } catch (error) {
           console.error('Invalid stored token:', error);

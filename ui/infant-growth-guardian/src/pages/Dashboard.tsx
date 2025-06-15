@@ -1,14 +1,37 @@
-
 import AddChildModal from '@/components/AddChildModal';
-import AlertsModal from '@/components/AlertsModal';
 import GrowthRecordModal from '@/components/GrowthRecordModal';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { toast } from '@/hooks/use-toast';
-import { apiClient } from '@/lib/api';
 import { Activity, AlertTriangle, LogOut, Plus, TrendingUp, Users } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import AlertsModal from '../components/AlertsModal';
+import type { Alert, Child } from '../components/types';
+
+const SAMPLE_CHILDREN: Child[] = [
+  { _id: '1', name: 'Aarav Singh', dob: '2021-03-10', gender: 'male', village: 'Rampur' },
+  { _id: '2', name: 'Priya Patel', dob: '2022-07-15', gender: 'female', village: 'Lakshmipur' },
+  { _id: '3', name: 'Vihaan Kumar', dob: '2020-11-25', gender: 'male', village: 'Sundarpur' },
+];
+
+const SAMPLE_ALERTS: Alert[] = [
+  {
+    _id: 'a1',
+    child: SAMPLE_CHILDREN[0],
+    level: 'sam',
+    message: 'Severe weight loss detected',
+    createdAt: '2025-06-10T10:00:00Z',
+    resolved: false,
+  },
+  {
+    _id: 'a2',
+    child: SAMPLE_CHILDREN[1],
+    level: 'mam',
+    message: 'Moderate acute malnutrition observed',
+    createdAt: '2025-06-12T09:30:00Z',
+    resolved: false,
+  },
+];
 
 interface DashboardProps {
   onLogout: () => void;
@@ -18,76 +41,17 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
   const [isAddChildOpen, setIsAddChildOpen] = useState(false);
   const [isGrowthRecordOpen, setIsGrowthRecordOpen] = useState(false);
   const [isAlertsOpen, setIsAlertsOpen] = useState(false);
-  const [dashboardStats, setDashboardStats] = useState({
-    totalChildren: 0,
-    activeAlerts: 0,
-    recentRecords: 0,
-    pendingRecommendations: 0
+  const [dashboardStats] = useState({
+    totalChildren: SAMPLE_CHILDREN.length,
+    activeAlerts: SAMPLE_ALERTS.length,
+    recentRecords: 4,
+    pendingRecommendations: 2,
   });
-  const [recentAlerts, setRecentAlerts] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
-
-  const fetchDashboardData = async () => {
-    if (!apiClient.token) {
-      console.error('No authentication token available');
-      handleLogout();
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      // Fetch children count
-      const childrenResponse = await apiClient.getAllChildren();
-      const totalChildren = childrenResponse.children?.length || 0;
-
-      // Fetch alerts
-      const alertsResponse = await apiClient.getAllAlerts();
-      const alerts = alertsResponse.alerts || [];
-      const activeAlerts = alerts.filter(alert => !alert.resolved).length;
-
-      // Set dashboard stats
-      setDashboardStats({
-        totalChildren,
-        activeAlerts,
-        recentRecords: 0, // This would need a specific endpoint
-        pendingRecommendations: 0 // This would need a specific endpoint
-      });
-
-      // Set recent alerts (top 3)
-      setRecentAlerts(alerts.slice(0, 3));
-
-      console.log('Dashboard data loaded:', { totalChildren, activeAlerts });
-    } catch (error) {
-      console.error('Error loading dashboard:', error);
-      toast({
-        title: "Error loading dashboard",
-        description: "Please try refreshing the page",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleRefreshData = () => {
-    fetchDashboardData();
-    toast({
-      title: "Data refreshed",
-      description: "Dashboard information has been updated",
-    });
-  };
+  const [recentAlerts] = useState<Alert[]>(SAMPLE_ALERTS.slice(0, 3));
+  const [isLoading] = useState(false);
 
   const handleLogout = () => {
-    apiClient.removeToken();
     onLogout();
-    toast({
-      title: "Logged out successfully",
-      description: "You have been safely logged out",
-    });
   };
 
   if (isLoading) {
@@ -130,7 +94,6 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
           </div>
         </div>
       </div>
-
       {/* Dashboard Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats Grid */}
@@ -145,7 +108,6 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
               <p className="text-xs text-muted-foreground">Under monitoring</p>
             </CardContent>
           </Card>
-
           <Card className="hover:shadow-lg transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Active Alerts</CardTitle>
@@ -156,7 +118,6 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
               <p className="text-xs text-muted-foreground">Require attention</p>
             </CardContent>
           </Card>
-
           <Card className="hover:shadow-lg transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Recent Records</CardTitle>
@@ -167,7 +128,6 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
               <p className="text-xs text-muted-foreground">This week</p>
             </CardContent>
           </Card>
-
           <Card className="hover:shadow-lg transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Recommendations</CardTitle>
@@ -179,7 +139,6 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
             </CardContent>
           </Card>
         </div>
-
         {/* Quick Actions and Recent Alerts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           <Card>
@@ -214,7 +173,6 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
               </Button>
             </CardContent>
           </Card>
-
           <Card>
             <CardHeader>
               <CardTitle>Recent Alerts</CardTitle>
@@ -243,8 +201,7 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
             </CardContent>
           </Card>
         </div>
-
-        {/* Growth Monitoring Overview - Keep evidence data */}
+        {/* Growth Monitoring Overview */}
         <Card>
           <CardHeader>
             <CardTitle>Growth Monitoring Overview</CardTitle>
@@ -268,21 +225,23 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
           </CardContent>
         </Card>
       </div>
-
       {/* Modals */}
       <AddChildModal 
         isOpen={isAddChildOpen} 
         onClose={() => setIsAddChildOpen(false)}
-        onChildAdded={handleRefreshData}
+        onChildAdded={() => {}}
+        sampleChildren={SAMPLE_CHILDREN}
       />
       <GrowthRecordModal 
         isOpen={isGrowthRecordOpen} 
         onClose={() => setIsGrowthRecordOpen(false)}
-        onRecordAdded={handleRefreshData}
+        onRecordAdded={() => {}}
+        sampleChildren={SAMPLE_CHILDREN}
       />
       <AlertsModal 
         isOpen={isAlertsOpen} 
         onClose={() => setIsAlertsOpen(false)}
+        sampleAlerts={SAMPLE_ALERTS}
       />
     </div>
   );

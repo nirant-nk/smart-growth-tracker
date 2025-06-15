@@ -1,8 +1,6 @@
+// routes/growth.routes.js
 import express from "express";
-import {
-    addGrowthRecord,
-    getAlerts,
-} from "../controllers/growth.controller.js";
+import { addGrowthRecord, getAlerts } from "../controllers/growth.controller.js";
 import { authMiddleware } from "../middlewares/authMiddleware.js";
 import { validateGrowthInput } from "../utils/validators.js";
 

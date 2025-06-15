@@ -1,130 +1,85 @@
+// api.ts
 
 const API_BASE_URL = 'http://localhost:6069/api';
 
 class ApiClient {
-  private _token: string | null = null;
+  private _token: string | null = localStorage.getItem('token');
+  private _parentId: string | null = localStorage.getItem('parentId');
 
-  constructor() {
-    this._token = localStorage.getItem('token');
-  }
-
-  get token() {
-    return this._token;
-  }
+  get token() { return this._token; }
+  get parentId() { return this._parentId; }
 
   setToken(token: string) {
     this._token = token;
     localStorage.setItem('token', token);
   }
 
-  removeToken() {
-    this._token = null;
-    localStorage.removeItem('token');
+  setParentId(parentId: string) {
+    this._parentId = parentId;
+    localStorage.setItem('parentId', parentId);
   }
 
-  private async request<T>(
-    endpoint: string,
-    options: RequestInit = {}
-  ): Promise<T> {
+  removeToken() {
+    this._token = null;
+    this._parentId = null;
+    localStorage.removeItem('token');
+    localStorage.removeItem('parentId');
+  }
+
+  private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const url = `${API_BASE_URL}${endpoint}`;
-    
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       ...(options.headers as Record<string, string>),
     };
-
-    if (this._token) {
-      headers['Authorization'] = `Bearer ${this._token}`;
-    }
-
-    const response = await fetch(url, {
-      ...options,
-      headers,
-    });
-
+    if (this._token) headers['Authorization'] = `Bearer ${this._token}`;
+    const response = await fetch(url, { ...options, headers });
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
     }
-
     return response.json();
   }
 
-  // Auth endpoints
+  // Auth
   async login(credentials: { phone: string; password: string }) {
-    return this.request<{ token: string; role: string }>('/users/login', {
+    return this.request<{ parentId: string; token: string; role: string }>('/users/login', {
       method: 'POST',
       body: JSON.stringify(credentials),
     });
   }
 
-  async register(userData: {
-    name: string;
-    phone: string;
-    password: string;
-    role: string;
-    village?: string;
-  }) {
+  async register(userData: { name: string; phone: string; password: string; role: string; village?: string }) {
     return this.request<{ message: string }>('/users/register', {
       method: 'POST',
       body: JSON.stringify(userData),
     });
   }
 
-  // Children endpoints
-  async createChild(childData: {
-    name: string;
-    dob: string;
-    gender: string;
-    village?: string;
-    parent?: string;
-  }) {
-    // Convert date to ISO format and handle parent field
-    const formattedData = {
-      ...childData,
-      dob: new Date(childData.dob).toISOString(),
-    };
-    
-    // Only include parent if it's provided and not empty
-    if (!formattedData.parent) {
-      delete formattedData.parent;
-    }
-    
+  // Children
+  async createChild(childData: { name: string; dob: string; gender: string; village?: string }) {
+    const formatted = { ...childData, dob: new Date(childData.dob).toISOString() };
     return this.request<{ child: unknown }>('/children', {
       method: 'POST',
-      body: JSON.stringify(formattedData),
+      body: JSON.stringify(formatted),
     });
-  }
-
-  async getChildHistory(childId: string) {
-    return this.request<{ child: unknown; growthHistory: unknown[] }>(`/children/${childId}/history`);
   }
 
   async getAllChildren() {
     return this.request<{ children: unknown[] }>('/children');
   }
 
-  // Growth records endpoints
-  async addGrowthRecord(childId: string, growthData: {
-    date: string;
-    height: number;
-    weight: number;
-    hasEdema?: boolean;
-  }) {
-    // Convert date to ISO format
-    const formattedData = {
-      ...growthData,
-      date: new Date(growthData.date).toISOString(),
-    };
+  async getChildHistory(childId: string) {
+    return this.request<{ child: unknown; growthHistory: unknown[] }>(`/children/${childId}/history`);
+  }
 
-    return this.request<{
-      record: unknown;
-      alerts: unknown[];
-      recommendations: unknown[];
-    }>(`/children/${childId}/growth`, {
-      method: 'POST',
-      body: JSON.stringify(formattedData),
-    });
+  // Growth Records
+  async addGrowthRecord(childId: string, growthData: { date: string; height: number; weight: number; hasEdema?: boolean }) {
+    const formattedData = { ...growthData, date: new Date(growthData.date).toISOString() };
+    return this.request<{ record: unknown; alerts: unknown[]; recommendations: unknown[] }>(
+      `/children/${childId}/growth`,
+      { method: 'POST', body: JSON.stringify(formattedData) }
+    );
   }
 
   async getAlerts(childId: string) {
@@ -135,19 +90,16 @@ class ApiClient {
     return this.request<{ alerts: unknown[] }>('/alerts');
   }
 
-  // Recommendations endpoints
+  // Recommendations
   async getRecommendations(childId: string) {
     return this.request<{ recommendations: unknown[] }>(`/children/${childId}/recommendations`);
   }
 
-  async confirmRecommendation(recId: string, method: string) {
-    return this.request<{
-      message: string;
-      recommendation: unknown;
-    }>(`/children/:childId/recommendations/${recId}/confirm`, {
-      method: 'POST',
-      body: JSON.stringify({ method }),
-    });
+  async confirmRecommendation(childId: string, recId: string, method: string) {
+    return this.request<{ message: string; recommendation: unknown }>(
+      `/children/${childId}/recommendations/${recId}/confirm`,
+      { method: 'POST', body: JSON.stringify({ method }) }
+    );
   }
 }
 

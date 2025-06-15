@@ -1,5 +1,8 @@
+// controllers/recommendation.controller.js
+
 import Recommendation from "../models/recommendation.model.js";
 
+// GET /children/:childId/recommendations
 export const getRecommendations = async (req, res, next) => {
   try {
     const { childId } = req.params;
@@ -12,6 +15,7 @@ export const getRecommendations = async (req, res, next) => {
   }
 };
 
+// POST /children/:childId/recommendations/:recId/confirm
 export const confirmRecommendation = async (req, res, next) => {
   try {
     const { recId } = req.params;

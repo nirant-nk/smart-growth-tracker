@@ -1,8 +1,6 @@
+// routes/recommendation.routes.js
 import express from "express";
-import {
-    confirmRecommendation,
-    getRecommendations,
-} from "../controllers/recommendation.controller.js";
+import { confirmRecommendation, getRecommendations } from "../controllers/recommendation.controller.js";
 import { authMiddleware } from "../middlewares/authMiddleware.js";
 
 const router = express.Router({ mergeParams: true });

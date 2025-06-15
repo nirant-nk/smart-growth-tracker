@@ -1,49 +1,47 @@
-
-import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertTriangle, Calendar, User } from 'lucide-react';
-import { apiClient } from '@/lib/api';
-import { toast } from '@/hooks/use-toast';
+import React, { useState } from 'react';
+import type { Alert } from './types';
+
+interface AlertWithStatus extends Alert {
+  confirmed?: boolean;
+}
 
 interface AlertsModalProps {
   isOpen: boolean;
   onClose: () => void;
+  sampleAlerts?: Alert[];
 }
 
-const AlertsModal = ({ isOpen, onClose }: AlertsModalProps) => {
-  const [alerts, setAlerts] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+const AlertsModal = ({ isOpen, onClose, sampleAlerts = [] }: AlertsModalProps) => {
+  // Add local state to manage alert status (confirmed/resolved)
+  const [alerts, setAlerts] = useState<AlertWithStatus[]>(
+    sampleAlerts.map(a => ({ ...a }))
+  );
 
-  useEffect(() => {
+  // Reset alerts when modal is reopened
+  React.useEffect(() => {
     if (isOpen) {
-      fetchAlerts();
+      setAlerts(sampleAlerts.map(a => ({ ...a })));
     }
-  }, [isOpen]);
+  }, [isOpen, sampleAlerts]);
 
-  const fetchAlerts = async () => {
-    if (!apiClient.token) {
-      console.error('No authentication token available');
-      return;
-    }
+  const handleConfirm = (id: string) => {
+    setAlerts(prev =>
+      prev.map(alert =>
+        alert._id === id ? { ...alert, confirmed: true } : alert
+      )
+    );
+  };
 
-    setIsLoading(true);
-    try {
-      const response = await apiClient.getAllAlerts();
-      setAlerts(response.alerts || []);
-      console.log('Fetched alerts:', response.alerts?.length || 0);
-    } catch (error) {
-      console.error('Error fetching alerts:', error);
-      setAlerts([]);
-      toast({
-        title: "Error fetching alerts",
-        description: "Could not load alerts data",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+  const handleResolve = (id: string) => {
+    setAlerts(prev =>
+      prev.map(alert =>
+        alert._id === id ? { ...alert, resolved: true } : alert
+      )
+    );
   };
 
   const getBadgeVariant = (level: string) => {
@@ -80,12 +78,7 @@ const AlertsModal = ({ isOpen, onClose }: AlertsModalProps) => {
             Children requiring immediate attention and intervention.
           </DialogDescription>
         </DialogHeader>
-        
-        {isLoading ? (
-          <div className="text-center py-8">
-            <p className="text-gray-500">Loading alerts...</p>
-          </div>
-        ) : alerts.length === 0 ? (
+        {alerts.length === 0 ? (
           <div className="text-center py-8">
             <AlertTriangle className="h-12 w-12 text-gray-300 mx-auto mb-4" />
             <p className="text-gray-500">No active alerts at the moment</p>
@@ -106,8 +99,10 @@ const AlertsModal = ({ isOpen, onClose }: AlertsModalProps) => {
                   <div className="flex items-center gap-2">
                     <User className="h-4 w-4 text-gray-600" />
                     <span className="font-semibold">{alert.child?.name || 'Unknown Child'}</span>
-                    {alert.child?.ageInMonths && (
-                      <span className="text-sm text-gray-600">({alert.child.ageInMonths} months)</span>
+                    {alert.child?.dob && (
+                      <span className="text-sm text-gray-600">
+                        ({Math.floor((new Date().getTime() - new Date(alert.child.dob).getTime()) / (1000 * 60 * 60 * 24 * 30))} months)
+                      </span>
                     )}
                   </div>
                   <Badge variant={getBadgeVariant(alert.level)}>
@@ -115,19 +110,47 @@ const AlertsModal = ({ isOpen, onClose }: AlertsModalProps) => {
                   </Badge>
                 </div>
                 <p className="text-sm text-gray-700 mb-2">{alert.message}</p>
-                <div className="flex items-center gap-4 text-xs text-gray-500">
+                <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500 mb-2">
                   <div className="flex items-center gap-1">
                     <Calendar className="h-3 w-3" />
                     {new Date(alert.createdAt).toLocaleDateString()}
                   </div>
                   {alert.child?.village && <span>Village: {alert.child.village}</span>}
-                  {!alert.resolved && <span className="text-red-600">• Unresolved</span>}
+                  {!alert.resolved && (
+                    <span className="text-red-600">• Unresolved</span>
+                  )}
+                  {alert.confirmed && (
+                    <span className="text-green-600">• Confirmed</span>
+                  )}
+                  {alert.resolved && (
+                    <span className="text-gray-400">• Resolved</span>
+                  )}
+                </div>
+                {/* Action Buttons */}
+                <div className="flex gap-2">
+                  {!alert.confirmed && !alert.resolved && (
+                    <Button
+                      size="sm"
+                      variant="default"
+                      onClick={() => handleConfirm(alert._id)}
+                    >
+                      Confirm
+                    </Button>
+                  )}
+                  {!alert.resolved && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleResolve(alert._id)}
+                    >
+                      Mark Resolved
+                    </Button>
+                  )}
                 </div>
               </div>
             ))}
           </div>
         )}
-        
         <div className="flex justify-end pt-4">
           <Button onClick={onClose}>Close</Button>
         </div>

@@ -1,17 +1,16 @@
-
-import { useState } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { apiClient } from '@/lib/api';
-import { toast } from '@/hooks/use-toast';
+import { useState } from 'react';
+import type { Child } from './types';
 
 interface AddChildModalProps {
   isOpen: boolean;
   onClose: () => void;
   onChildAdded: () => void;
+  sampleChildren?: Child[];
 }
 
 const AddChildModal = ({ isOpen, onClose, onChildAdded }: AddChildModalProps) => {
@@ -19,40 +18,20 @@ const AddChildModal = ({ isOpen, onClose, onChildAdded }: AddChildModalProps) =>
     name: '',
     dob: '',
     gender: '',
-    village: '',
-    parent: ''
+    village: ''
   });
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    try {
-      // Clean data - remove empty parent field
-      const childData = {
-        ...formData,
-        parent: formData.parent || undefined
-      };
-
-      await apiClient.createChild(childData);
-      toast({
-        title: "Child added successfully",
-        description: `${formData.name} has been registered in the system.`,
-      });
-      setFormData({ name: '', dob: '', gender: '', village: '', parent: '' });
+    setTimeout(() => {
+      setIsLoading(false);
+      setFormData({ name: '', dob: '', gender: '', village: '' });
       onChildAdded();
       onClose();
-    } catch (error) {
-      console.error('Error adding child:', error);
-      toast({
-        title: "Failed to add child",
-        description: error instanceof Error ? error.message : "Please try again",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    }, 800);
   };
 
   return (
@@ -104,15 +83,6 @@ const AddChildModal = ({ isOpen, onClose, onChildAdded }: AddChildModalProps) =>
               value={formData.village}
               onChange={(e) => setFormData(prev => ({ ...prev, village: e.target.value }))}
               placeholder="Enter village or location"
-            />
-          </div>
-          <div>
-            <Label htmlFor="parent-id">Parent ID (Optional)</Label>
-            <Input
-              id="parent-id"
-              value={formData.parent}
-              onChange={(e) => setFormData(prev => ({ ...prev, parent: e.target.value }))}
-              placeholder="Enter parent ObjectId if known"
             />
           </div>
           <div className="flex gap-2 pt-4">

@@ -1,21 +1,20 @@
-
-import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { apiClient } from '@/lib/api';
-import { toast } from '@/hooks/use-toast';
+import { useEffect, useState } from 'react';
+import type { Child } from './types';
 
 interface GrowthRecordModalProps {
   isOpen: boolean;
   onClose: () => void;
   onRecordAdded: () => void;
+  sampleChildren?: Child[];
 }
 
-const GrowthRecordModal = ({ isOpen, onClose, onRecordAdded }: GrowthRecordModalProps) => {
+const GrowthRecordModal = ({ isOpen, onClose, onRecordAdded, sampleChildren = [] }: GrowthRecordModalProps) => {
   const [formData, setFormData] = useState({
     childId: '',
     date: '',
@@ -23,9 +22,6 @@ const GrowthRecordModal = ({ isOpen, onClose, onRecordAdded }: GrowthRecordModal
     weight: '',
     hasEdema: false
   });
-  const [children, setChildren] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingChildren, setIsLoadingChildren] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -36,82 +32,14 @@ const GrowthRecordModal = ({ isOpen, onClose, onRecordAdded }: GrowthRecordModal
         weight: '',
         hasEdema: false
       });
-      fetchChildren();
     }
   }, [isOpen]);
 
-  const fetchChildren = async () => {
-    if (!apiClient.token) {
-      console.error('No authentication token available');
-      return;
-    }
-
-    setIsLoadingChildren(true);
-    try {
-      const response = await apiClient.getAllChildren();
-      setChildren(response.children || []);
-      console.log('Fetched children:', response.children?.length || 0);
-    } catch (error) {
-      console.error('Error fetching children:', error);
-      setChildren([]);
-      toast({
-        title: "Error loading children",
-        description: "Could not load children list",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoadingChildren(false);
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.childId) {
-      toast({
-        title: "Please select a child",
-        description: "You must select a child to record measurements for",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      const response = await apiClient.addGrowthRecord(formData.childId, {
-        date: formData.date,
-        height: parseFloat(formData.height),
-        weight: parseFloat(formData.weight),
-        hasEdema: formData.hasEdema
-      });
-      
-      toast({
-        title: "Growth record added successfully",
-        description: "New measurements have been recorded",
-      });
-
-      // Show alerts if any were generated
-      if (response.alerts && response.alerts.length > 0) {
-        const alertMessages = response.alerts.map((alert: any) => alert.message).join(', ');
-        toast({
-          title: "Alert Generated",
-          description: alertMessages,
-          variant: "destructive",
-        });
-      }
-      
-      onRecordAdded();
-      onClose();
-    } catch (error) {
-      console.error('Error adding growth record:', error);
-      toast({
-        title: "Failed to add record",
-        description: error instanceof Error ? error.message : "Please try again",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    if (!formData.childId) return;
+    onRecordAdded();
+    onClose();
   };
 
   const calculateAge = (dob: string) => {
@@ -137,18 +65,17 @@ const GrowthRecordModal = ({ isOpen, onClose, onRecordAdded }: GrowthRecordModal
             <Select 
               value={formData.childId} 
               onValueChange={(value) => setFormData(prev => ({ ...prev, childId: value }))}
-              disabled={isLoadingChildren}
             >
               <SelectTrigger>
-                <SelectValue placeholder={isLoadingChildren ? "Loading children..." : "Choose a child"} />
+                <SelectValue placeholder="Choose a child" />
               </SelectTrigger>
               <SelectContent>
-                {children.length === 0 ? (
+                {sampleChildren.length === 0 ? (
                   <SelectItem value="no-children" disabled>
-                    {isLoadingChildren ? "Loading..." : "No children available - Please add a child first"}
+                    No children available - Please add a child first
                   </SelectItem>
                 ) : (
-                  children.map((child) => (
+                  sampleChildren.map((child) => (
                     <SelectItem key={child._id} value={child._id}>
                       {child.name} ({calculateAge(child.dob)} months)
                     </SelectItem>
@@ -207,8 +134,8 @@ const GrowthRecordModal = ({ isOpen, onClose, onRecordAdded }: GrowthRecordModal
             <Button type="button" variant="outline" onClick={onClose} className="flex-1">
               Cancel
             </Button>
-            <Button type="submit" disabled={isLoading || !formData.childId || children.length === 0} className="flex-1">
-              {isLoading ? 'Recording...' : 'Record Measurement'}
+            <Button type="submit" disabled={!formData.childId || sampleChildren.length === 0} className="flex-1">
+              Record Measurement
             </Button>
           </div>
         </form>

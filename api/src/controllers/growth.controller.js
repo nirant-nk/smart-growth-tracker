@@ -6,6 +6,7 @@ import GrowthRecord from "../models/growthRecord.model.js";
 import Recommendation from "../models/recommendation.model.js";
 import { calculateZScores, classifyZScore } from "../utils/zscoreCalculator.js";
 
+// Helper: Generate recommendation message
 function generateMessage(level) {
   const tips = {
     sam: "Severe Acute Malnutrition detected. Refer to NRC and begin emergency intervention.",
@@ -15,24 +16,22 @@ function generateMessage(level) {
   return tips[level] || "Monitor growth parameters.";
 }
 
+// POST /children/:childId/growth - Add growth record
 export const addGrowthRecord = async (req, res, next) => {
   try {
     const { childId } = req.params;
     const { date, height, weight, hasEdema } = req.body;
-
     const child = await Child.findById(childId);
     if (!child) return res.status(404).json({ message: "Child not found" });
 
     const ageMs = new Date(date) - new Date(child.dob);
     const ageInMonths = Math.floor(ageMs / (1000 * 60 * 60 * 24 * 30));
-
     const { whz } = calculateZScores({
       ageInMonths,
       height,
       weight,
       gender: child.gender,
     });
-
     const whzClassification = classifyZScore(whz, hasEdema);
 
     const record = await GrowthRecord.create({
@@ -51,7 +50,6 @@ export const addGrowthRecord = async (req, res, next) => {
 
     const alerts = [];
     const recommendations = [];
-
     if (whzClassification !== "normal") {
       const alert = await Alert.create({
         child: childId,
@@ -80,6 +78,7 @@ export const addGrowthRecord = async (req, res, next) => {
   }
 };
 
+// GET /children/:childId/alerts - List active alerts for child
 export const getAlerts = async (req, res, next) => {
   try {
     const { childId } = req.params;

@@ -7,7 +7,6 @@ const childSchema = new mongoose.Schema(
     gender: { type: String, enum: ["male", "female"], required: true },
     village: String,
     uniqueId: { type: String, unique: true },
-    parent: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     growthRecords: [
       { type: mongoose.Schema.Types.ObjectId, ref: "GrowthRecord" },

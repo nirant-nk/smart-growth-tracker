@@ -1,4 +1,4 @@
-# 👨‍👩‍👧‍👦 Smart Growth Tracker for Infants
+# 👨‍👩‍👧‍👦 Infant Growth Guardian- Smart Growth Tracker for Infants
 
 A digital health tool to assist community health workers in detecting infant malnutrition (SAM/MAM) early using growth monitoring and real-time alerts.
 
@@ -115,7 +115,7 @@ api/
 3. **Configure **``
    ```env
    PORT=6069
-   MONGODB_URI=<your_mongo_uri>
+   SUPABASE_URI=<your_supabase_uri>
    JWT_SECRET=<your_jwt_secret>
    ```
 4. **Start in dev mode**
@@ -162,6 +162,6 @@ All routes are prefixed with `/api` and require a Bearer token unless noted.
 ## 📎 Repository
 
 ```bash
-git clone https://github.com/yourusername/smart-growth-tracker.git
+git clone https://github.com/nirant-nk/smart-growth-tracker.git
 ```
 
