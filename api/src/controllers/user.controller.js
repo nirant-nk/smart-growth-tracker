@@ -5,13 +5,18 @@ import User from "../models/user.model.js";
 
 export const registerUser = async (req, res, next) => {
   try {
-    const { name, phone, password, role, village } = req.body;
+    const { name, phone,email, password, role, village } = req.body;
     const existing = await User.findOne({ phone });
     if (existing)
       return res.status(400).json({ message: "Phone already registered" });
 
+    let username = Math.random()*100+68;
+    while( await User.findOne({username})) {
+      username = Math.random()*100+69;
+    }
+
     const passwordHash = await bcrypt.hash(password, 10);
-    const user = new User({ name, phone, passwordHash, role, village }); //"asha", "anm", "parent"
+    const user = new User({ name, phone,username, email,passwordHash, role, village }); //"asha", "anm", "parent"
     await user.save();
     res.status(201).json({ message: "User registered" });
   } catch (err) {

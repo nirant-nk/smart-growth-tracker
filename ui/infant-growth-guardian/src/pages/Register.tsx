@@ -16,6 +16,7 @@ const Register = ({ onNavigate }: RegisterProps) => {
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
+    email: '',
     password: '',
     role: '',
     village: ''
@@ -71,6 +72,17 @@ const Register = ({ onNavigate }: RegisterProps) => {
                 value={formData.phone}
                 onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
                 placeholder="Enter your phone number"
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                placeholder="Enter your email address"
                 required
               />
             </div>

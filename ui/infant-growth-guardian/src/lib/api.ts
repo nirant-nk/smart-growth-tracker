@@ -90,18 +90,18 @@ class ApiClient {
       delete formattedData.parent;
     }
     
-    return this.request<{ child: any }>('/children', {
+    return this.request<{ child: unknown }>('/children', {
       method: 'POST',
       body: JSON.stringify(formattedData),
     });
   }
 
   async getChildHistory(childId: string) {
-    return this.request<{ child: any; growthHistory: any[] }>(`/children/${childId}/history`);
+    return this.request<{ child: unknown; growthHistory: unknown[] }>(`/children/${childId}/history`);
   }
 
   async getAllChildren() {
-    return this.request<{ children: any[] }>('/children');
+    return this.request<{ children: unknown[] }>('/children');
   }
 
   // Growth records endpoints
@@ -118,9 +118,9 @@ class ApiClient {
     };
 
     return this.request<{
-      record: any;
-      alerts: any[];
-      recommendations: any[];
+      record: unknown;
+      alerts: unknown[];
+      recommendations: unknown[];
     }>(`/children/${childId}/growth`, {
       method: 'POST',
       body: JSON.stringify(formattedData),
@@ -128,22 +128,22 @@ class ApiClient {
   }
 
   async getAlerts(childId: string) {
-    return this.request<{ alerts: any[] }>(`/children/${childId}/alerts`);
+    return this.request<{ alerts: unknown[] }>(`/children/${childId}/alerts`);
   }
 
   async getAllAlerts() {
-    return this.request<{ alerts: any[] }>('/alerts');
+    return this.request<{ alerts: unknown[] }>('/alerts');
   }
 
   // Recommendations endpoints
   async getRecommendations(childId: string) {
-    return this.request<{ recommendations: any[] }>(`/children/${childId}/recommendations`);
+    return this.request<{ recommendations: unknown[] }>(`/children/${childId}/recommendations`);
   }
 
   async confirmRecommendation(recId: string, method: string) {
     return this.request<{
       message: string;
-      recommendation: any;
+      recommendation: unknown;
     }>(`/children/:childId/recommendations/${recId}/confirm`, {
       method: 'POST',
       body: JSON.stringify({ method }),
